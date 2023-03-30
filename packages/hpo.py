@@ -16,21 +16,78 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, UniformIntege
 from smac.facade.smac_hpo_facade import SMAC4HPO
 
 
-
+''' 
+    - Functions for optimize hyperparameter using 
+        - bo_tpe via hyperopt
+        - pso via optunity
+        - smac via SMAC
+    - Contains: 2 ML models -> decision tree and random forest 
+    - Objective function = minimize the value of recall (inverted) -> -recall : lower = better
+    - Return: 
+        - list of best hyperparameters configuration of each ML models: 
+        [decision_tree, random_forest]
+        - list of computational time : [decision_tree_ct, random_forest_ct]
+    '''
 
 # ------------------------- HPO setup -------------------------
 fold = 10   
 max_evals = 50   
 show_result = False
 
-def hypers_to_int(dt_best, rf_best):
+def float_hypers_to_int(dt_best, rf_best):
+    """ Turn float hyper-parameter to int 
+    
+    Parameters
+    ----------
+    dt_best : dict 
+        Dictionary contains hyper-parameter configuration for DT model 
+    rf_best : dict 
+        Dictionary contains hyper-parameter configuration for RF model
+    
+    Return
+    ------
+    new_dt_best : dict 
+        Dictionary contains hyper-parameter configuration without float type for DT model
+    new_rf_best : dict 
+        Dictionary contains hyper-parameter configuration without float type for RF model 
+    
+    Example 
+    -------
+    >>> dt_best, rf_best = float_hypers_to_int(dt_best, rf_best)
+    """
+
     new_dt_best = {k: int(v) if type(v) == float else v for(k, v) in dt_best.items()}
     new_rf_best = {k: int(v) if type(v) == float else v for(k, v) in rf_best.items()}
     
     return new_dt_best, new_rf_best
 
-# ------------------------- HPO methods -------------------------
 def smac(X, y, num_folds=fold, max_evals=max_evals, show_result=show_result):
+    """ Optimize using SMAC via SMAC library 
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        The data to fit. Can be for example a list, or an array.
+    y : array-like of shape (n_samples,)
+        The target variable to try to predict
+    num_folds : int 
+        Number of folds of the KFold 
+    max_evals : int 
+        Number of max evaluation function of the optimization method
+    show_process : bool
+        The toggle for printing out the process
+    
+    Return 
+    ------
+    best_config : list 
+        List of best hyperparameters configuration of DT and RF models 
+    compute_time : list 
+        List of of computational time of DT and RF in second 
+
+    Example 
+    -------
+    >>> smac_best[smell], smac_ct[smell] = smac(X_train, y_train, max_evals=50)
+    """
 
     print("Optmize using SMAC . . . ", end=" ")
     
@@ -106,9 +163,9 @@ def smac(X, y, num_folds=fold, max_evals=max_evals, show_result=show_result):
     # create scenario objects
     rf_scenario = Scenario(
         {
-            "run_obj": "quality",  # optimize quality
-            "runcount_limit": max_evals,  # max. number of evaluations
-            "cs": rf_space,  # configuration space
+            "run_obj": "quality",           # optimize quality
+            "runcount_limit": max_evals,    # max. number of evaluations
+            "cs": rf_space,                 # configuration space
             "deterministic": True
         }
     )
@@ -133,13 +190,41 @@ def smac(X, y, num_folds=fold, max_evals=max_evals, show_result=show_result):
         print(rf_best, "\n")
     
 
-    dt_best, rf_best = hypers_to_int(dt_best, rf_best)
+    dt_best, rf_best = float_hypers_to_int(dt_best, rf_best)
+    
+    best_config = [dt_best, rf_best]
+    compute_time = [dt_ct, rf_ct]
 
-    return [dt_best, rf_best], [dt_ct, rf_ct]
-
+    return best_config, compute_time
 
 def pso(X, y, num_folds=fold, max_evals=max_evals, show_result=show_result):
-  
+    """ Optimize using Particle Swarm Optimization (PSO) via Optunity
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        The data to fit. Can be for example a list, or an array.
+    y : array-like of shape (n_samples,)
+        The target variable to try to predict
+    num_folds : int 
+        Number of folds of the KFold 
+    max_evals : int 
+        Number of max evaluation function of the optimization method
+    show_process : bool
+        The toggle for printing out the process
+    
+    Return 
+    ------
+    best_config : list 
+        List of best hyperparameters configuration of DT and RF models 
+    compute_time : list 
+        List of of computational time of DT and RF in second 
+
+    Example 
+    -------
+    >>> pso_best[smell], pso_ct[smell] = pso(X_train, y_train, max_evals=50)
+    """
+
     print("Optmize using PSO . . . ", end=" ")
 
     data = X.to_numpy()
@@ -246,13 +331,41 @@ def pso(X, y, num_folds=fold, max_evals=max_evals, show_result=show_result):
     dt_best['criterion'] = map_criterion_pso(dt_best['criterion'])
     rf_best['criterion'] = map_criterion_pso(rf_best['criterion'])
 
-    dt_best, rf_best = hypers_to_int(dt_best, rf_best)
+    dt_best, rf_best = float_hypers_to_int(dt_best, rf_best)
 
-    return [dt_best, rf_best], [dt_ct, rf_ct]
+    best_config = [dt_best, rf_best]
+    compute_time = [dt_ct, rf_ct]
 
+    return best_config, compute_time
 
 def bo_tpe(X_train, y_train, num_folds=fold, max_evals=max_evals, show_result=show_result):
-   
+    """ Optimize using Bayesian Optimization with Tree-parzen estimator (BO-TPE) via Hyperopt 
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        The data to fit. Can be for example a list, or an array.
+    y : array-like of shape (n_samples,)
+        The target variable to try to predict
+    num_folds : int 
+        Number of folds of the KFold 
+    max_evals : int 
+        Number of max evaluation function of the optimization method
+    show_process : bool
+        The toggle for printing out the process
+    
+    Return 
+    ------
+    best_config : list 
+        List of best hyperparameters configuration of DT and RF models 
+    compute_time : list 
+        List of of computational time of DT and RF in second 
+
+    Example 
+    -------
+    >>> bo_best[smell], bo_ct[smell] = bo_tpe(X_train, y_train, max_evals=50)
+    """
+
     print("Optmize using BO-TPE . . . ", end=" ")
 
     # ----------------- decision tree -----------------
@@ -284,10 +397,10 @@ def bo_tpe(X_train, y_train, num_folds=fold, max_evals=max_evals, show_result=sh
 
     # optimizing using fmin()
     dt_best = fmin(fn=dt_objective,
-                   space=dt_space,
-                   algo=tpe.suggest,
-                   max_evals=max_evals,
-                   return_argmin=False)
+                    space=dt_space,
+                    algo=tpe.suggest,
+                    max_evals=max_evals,
+                    return_argmin=False)
 
     et = time.time()
     dt_ct = et - st
@@ -323,15 +436,15 @@ def bo_tpe(X_train, y_train, num_folds=fold, max_evals=max_evals, show_result=sh
     
     # optimizing using fmin()
     rf_best = fmin(fn=rf_objective,
-                   space=rf_space,
-                   algo=tpe.suggest,
-                   max_evals=max_evals,
-                   return_argmin=False)
+                    space=rf_space,
+                    algo=tpe.suggest,
+                    max_evals=max_evals,
+                    return_argmin=False)
 
     et = time.time()
     rf_ct = et - st
 
-    dt_best, rf_best = hypers_to_int(dt_best, rf_best)
+    dt_best, rf_best = float_hypers_to_int(dt_best, rf_best)
     
 
     print("Done !\n")
@@ -344,10 +457,11 @@ def bo_tpe(X_train, y_train, num_folds=fold, max_evals=max_evals, show_result=sh
 
     if show_result:
         print_best()
+    
+    best_config = [dt_best, rf_best]
+    compute_time = [dt_ct, rf_ct]
 
-    return [dt_best, rf_best], [dt_ct, rf_ct]
-
-
+    return best_config, compute_time
 
 def export_hpo_compute_time(bo, pso, smac, files_path="../reports"):
     ''' Gets and exports the computational time of HPO methods
