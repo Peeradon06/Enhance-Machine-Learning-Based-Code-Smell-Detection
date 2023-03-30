@@ -9,18 +9,44 @@ from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall
 from packages.classifier import Classifier
 
 
-n_job = -1  # -1 for parallel computing 
+n_job = -1      # enalble parallel computing  
 
 def train_optimize(X, y, conf, smell="", hpo="", n_splits=10, n_repeats=10, show_result=False, show_process=True, export_models=True):
-    ''' 
-        function for training models using hyper parameter from configuration dicts
-        params:
-            - conf : hyper parameter dictionary 
-            - smell : string label the smell name 
-            - hpo : string label the hpo method used and also the prefix of the model name whem exporting the models
-        return:
-            - list of Classifier object [decision_tree, random_forest]
-    '''
+    """ Train model using otimized hyper-parameter 
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        The data to fit. Can be for example a list, or an array.
+    y : array-like of shape (n_samples,)
+        The target variable to try to predict
+    conf : dict
+        Dictionary contains hyper-parameter configuration of [DT, RF]
+    smell : str
+        The name of code smell
+    hpo : str
+        The name of hyper-parameter optimization method 
+    n_split : int 
+        Number of folds of the KFold
+    n_repeats : int
+        Number of times cross-validator needs to be repeated
+    show_result : bool 
+        The toggle for printing out the result recall value of DT and RF
+    show_process : bool
+        The toggle for printing out the process
+    export_models : bool
+        The toggle for exporting the model.pkl file
+    
+    Return 
+    ------
+    models : list 
+        List contains Classfiers objects [decision_tree, random_forest]
+    
+    Example
+    -------
+    >>> bo_models[smell] = train_optimize(X_train, y_train, conf=bo_best[smell], smell="Data class", hpo="bo", n_splits=10, n_repeats=10)
+    """
+
     if show_process:
         print(f'creating model using hyper-params from {hpo.upper()} . . .')
     
@@ -81,10 +107,37 @@ def train_optimize(X, y, conf, smell="", hpo="", n_splits=10, n_repeats=10, show
     return models
 
 def train_baseline(X, y, smell="", n_splits=10, n_repeats=10, show_result=False, show_process=True, export_models=True, prefix="baseline"):
-    ''' 
-        function for training baseline models: decision tree and random forest 
-        - Return : list of Classifier object [decision_tree, random_forest]
-    '''
+    """ Train baseline model
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        The data to fit. Can be for example a list, or an array.
+    y : array-like of shape (n_samples,)
+        The target variable to try to predict
+    n_split : int 
+        Number of folds of the KFold
+    n_repeats : int
+        Number of times cross-validator needs to be repeated
+    show_result : bool 
+        The toggle for printing out the result recall value of DT and RF
+    show_process : bool
+        The toggle for printing out the process
+    export_models : bool
+        The toggle for exporting the model.pkl file
+    prefix : str
+        The prefix name of model.pkl files
+
+    Return 
+    ------
+    models : list 
+        List contains Classfiers objects [decision_tree, random_forest]
+    
+    Example
+    -------
+    >>> baseline_models[smell] = train_baseline(X_train, y_train, smell=smell, n_splits=10, n_repeats=10)
+    """
+    
     if show_process:
         print("creating baseline . . .")
 
