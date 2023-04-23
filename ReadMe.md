@@ -20,17 +20,14 @@ Enhance Machine Learning-Based Code Smell Detection Through Hyper-Parameter Opti
 * Bayesian Optimization with Tree-structure Parzen Estimator (BO-TPE)
 * Bayesiam Optimization with Random forest (BO-RF/SMAC)
 
-## Directory Structure 
-
-
 ### Requirements
 * Python 3.5+
 * [scikit-learn](https://scikit-learn.org/stable/)
 * [hyperopt](https://github.com/hyperopt/hyperopt)
 * [optunity](https://github.com/claesenm/optunity)
 * [SMAC3](https://github.com/automl/SMAC3)
+* Noted: the SMAC3 library currently support only linux/unix operating system.
 
 ## Citation
 If you find this repository useful or being used within your research, please cite this paper as:
-
 
