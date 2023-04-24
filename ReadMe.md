@@ -30,4 +30,5 @@ Enhance Machine Learning-Based Code Smell Detection Through Hyper-Parameter Opti
 
 ## Citation
 If you find this repository useful or being used within your research, please cite this paper as:
+
 P. Sukkasem, C. Soomlek, "Enhance Machine Learning-Based Code Smell Detection Through Hyper-Parameter Optimization," 2023 2oth International Joint Conference on Computer Science and Software Engineering (JCSSE), Phitsanulok, Thailand, 2023.
